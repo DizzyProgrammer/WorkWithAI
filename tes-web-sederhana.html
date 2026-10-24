@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tes Web Sederhana</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f1f5f9;
+    }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; }
+    main { width: min(100%, 480px); padding: 32px; background: white; border: 1px solid #e2e8f0; border-radius: 18px; box-shadow: 0 16px 40px #0f172a12; }
+    .tag { display: inline-block; padding: 5px 10px; border-radius: 999px; color: #075985; background: #e0f2fe; font-size: 13px; font-weight: 650; }
+    h1 { margin: 16px 0 8px; font-size: clamp(28px, 7vw, 38px); letter-spacing: -1px; }
+    p { color: #64748b; line-height: 1.6; }
+    .counter { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding: 16px; border-radius: 12px; background: #f8fafc; }
+    #count { font-size: 32px; font-weight: 750; font-variant-numeric: tabular-nums; }
+    button { width: 100%; margin-top: 16px; padding: 12px 16px; border: 0; border-radius: 10px; color: white; background: #2563eb; font: inherit; font-weight: 650; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    button:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
+    #message { min-height: 24px; margin-bottom: 0; color: #15803d; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="tag">HTML sederhana</span>
+    <h1>Halo, dunia! 👋</h1>
+    <p>Ini halaman kecil untuk tes. Tekan tombol di bawah dan lihat penghitungnya berubah.</p>
+    <div class="counter" aria-live="polite">
+      <span>Jumlah klik</span>
+      <span id="count">0</span>
+    </div>
+    <button id="clickButton" type="button">Klik saya</button>
+    <p id="message" aria-live="polite"></p>
+  </main>
+  <script>
+    let count = 0;
+    const countDisplay = document.querySelector("#count");
+    const message = document.querySelector("#message");
+
+    document.querySelector("#clickButton").addEventListener("click", () => {
+      count += 1;
+      countDisplay.textContent = count;
+      message.textContent = count === 1 ? "Berhasil! Tombolnya berfungsi." : `Mantap, sudah ${count} kali diklik.`;
+    });
+  </script>
+</body>
+</html>
