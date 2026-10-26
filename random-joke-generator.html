@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Random Joke Generator</title>
+    <style>
+      :root {
+        --bg: #fff7ed;
+        --panel: #ffffff;
+        --card: #fffaf2;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --primary: #f59e0b;
+        --primary-dark: #d97706;
+        --secondary: #fef3c7;
+        --border: #f5d7a1;
+        --shadow: 0 18px 40px rgba(245, 158, 11, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: linear-gradient(135deg, #fff7ed, #fef3c7);
+        font-family: Arial, sans-serif;
+        color: var(--text);
+      }
+
+      .app {
+        width: min(760px, 100%);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+      }
+
+      .header p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .joke-box {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        min-height: 180px;
+        padding: 24px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: clamp(1.1rem, 2vw, 1.5rem);
+        line-height: 1.7;
+        font-weight: 600;
+      }
+
+      .status {
+        min-height: 26px;
+        margin-top: 18px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .actions {
+        margin-top: 22px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease, filter 0.15s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.02);
+      }
+
+      .primary {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .secondary {
+        background: var(--secondary);
+        color: var(--text);
+      }
+
+      .loading {
+        opacity: 0.7;
+      }
+
+      @media (max-width: 480px) {
+        .app {
+          padding: 20px 16px;
+        }
+
+        .actions {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        .actions button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <div class="header">
+        <h1>😂 Random Joke Generator</h1>
+        <p>Dapatkan lelucon random dari API publik.</p>
+      </div>
+
+      <div class="joke-box" id="jokeBox">Klik tombol untuk mulai.</div>
+      <div class="status" id="statusText">Siap</div>
+
+      <div class="actions">
+        <button class="primary" id="newJokeBtn">Dapatkan lelucon</button>
+        <button class="secondary" id="copyBtn">Salin lelucon</button>
+      </div>
+    </main>
+
+    <script>
+      const jokeBox = document.getElementById('jokeBox');
+      const statusText = document.getElementById('statusText');
+      const newJokeBtn = document.getElementById('newJokeBtn');
+      const copyBtn = document.getElementById('copyBtn');
+
+      async function fetchJoke() {
+        jokeBox.classList.add('loading');
+        statusText.textContent = 'Mengambil lelucon...';
+        jokeBox.textContent = 'Loading...';
+
+        try {
+          const response = await fetch('https://icanhazdadjoke.com/', {
+            headers: {
+              Accept: 'application/json',
+              'User-Agent': 'WorkWithAI Joke Generator'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Gagal mengambil data dari API');
+          }
+
+          const data = await response.json();
+          jokeBox.textContent = data.joke || 'Tidak ada lelucon hari ini.';
+          statusText.textContent = 'Joke baru berhasil didapatkan';
+        } catch (error) {
+          jokeBox.textContent = 'Maaf, lelucon tidak bisa dimuat saat ini. Coba lagi sebentar.';
+          statusText.textContent = 'Terjadi kesalahan saat mengambil data';
+          console.error(error);
+        } finally {
+          jokeBox.classList.remove('loading');
+        }
+      }
+
+      async function copyJoke() {
+        const text = jokeBox.textContent.trim();
+        if (!text || text.includes('Klik tombol') || text.includes('Loading') || text.includes('Maaf')) {
+          statusText.textContent = 'Belum ada lelucon yang bisa disalin';
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(text);
+          statusText.textContent = 'Lelucon berhasil disalin';
+        } catch (error) {
+          statusText.textContent = 'Clipboard tidak tersedia, salin manual saja';
+          console.error(error);
+        }
+      }
+
+      newJokeBtn.addEventListener('click', fetchJoke);
+      copyBtn.addEventListener('click', copyJoke);
+
+      fetchJoke();
+    </script>
+  </body>
+</html>
