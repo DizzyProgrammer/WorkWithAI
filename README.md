@@ -8,6 +8,7 @@ Repo untuk eksperimen dan aplikasi kecil yang dibuat dengan bantuan AI.
 - [Random Joke Generator](random-joke-generator.html) — generator lelucon acak berbasis API publik (icanhazdadjoke).
 - [Playground Prompt AI](playground-prompt-ai.html) — isi placeholder template, pratinjau hasil, salin prompt, dan simpan riwayat di browser. Sumber template: [kumpulan prompt lintas industri](kumpulan-prompt-ai-lintas-industri.md).
 - [Kumpulan Prompt AI Lintas Industri](kumpulan-prompt-ai-lintas-industri.md)
+- [Kumpulan Prompt AI - Analisis Saham IDX](Kumpulan%20Prompt%20AI%20-%20Analisis%20Saham%20IDX.pdf)
 - [Demo Kartu Ide](tes-web-sederhana.html)
 - [Tracker Keuangan Pribadi](tracker%20keuangan%20pribadi.html)
 
