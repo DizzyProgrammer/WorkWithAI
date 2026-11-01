@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <title>Playground Prompt AI</title>
+  <style>
+    :root {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #242821;
+      background: #f5f4ef;
+      --muted: #777b70;
+      --line: #e7e5dc;
+      --green: #28583f;
+      --mint: #e4efe5;
+      --card: #fff;
+      --warn: #a44936;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    .shell { width: min(1240px, 100%); margin: auto; padding: 28px 22px 48px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 42px; height: 42px; border-radius: 14px; background: var(--green); color: #fff; display: grid; place-items: center; font-size: 20px; }
+    .brand strong { display: block; font-size: 15px; }
+    .brand small { color: var(--muted); }
+    .eyebrow { color: #52745a; text-transform: uppercase; letter-spacing: .13em; font-size: 11px; font-weight: 800; }
+    h1 { font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -.055em; margin: 8px 0 8px; }
+    .welcome p { color: var(--muted); margin: 0 0 22px; max-width: 62ch; line-height: 1.55; }
+    .layout { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); gap: 18px; align-items: start; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+    .panel h2 { margin: 0; font-size: 16px; letter-spacing: -.02em; }
+    .sub { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .search { width: 100%; min-height: 42px; margin: 14px 0 12px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; font: inherit; background: #fff; }
+    .search:focus, input:focus, textarea:focus, select:focus { outline: 3px solid #c5e6d0; border-color: #528365; }
+    .cat-list { display: grid; gap: 14px; max-height: calc(100vh - 280px); overflow: auto; padding-right: 4px; }
+    .cat h3 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    .tpl { width: 100%; text-align: left; border: 1px solid transparent; background: #f7f6f1; color: inherit; border-radius: 10px; padding: 9px 11px; margin: 0 0 6px; font: inherit; font-size: 13px; cursor: pointer; }
+    .tpl:hover { background: var(--mint); }
+    .tpl.active { background: var(--mint); border-color: #c7dccb; font-weight: 650; }
+    .editor-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 16px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .button { border: 0; border-radius: 10px; padding: 10px 14px; background: var(--green); color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .button:hover { background: #1d4630; }
+    .button.light { background: #eff3ed; color: var(--green); }
+    .button.ghost { background: transparent; color: var(--muted); }
+    .fields { display: grid; gap: 12px; margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+    .field input, .field textarea { width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; font: inherit; background: #fff; }
+    .field textarea { min-height: 88px; resize: vertical; }
+    .meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .preview { white-space: pre-wrap; background: #f7f8f4; border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-size: 13.5px; line-height: 1.6; min-height: 180px; }
+    .ph { background: #fff2d9; color: #8c6820; border-radius: 4px; padding: 0 3px; }
+    .filled { background: #d9eadb; color: #28583f; border-radius: 4px; padding: 0 3px; }
+    .history { margin-top: 18px; }
+    .history-list { display: grid; gap: 8px; }
+    .hist { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; border: 1px solid #eeede7; border-radius: 12px; padding: 10px 12px; }
+    .hist button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; }
+    .hist button:hover { color: var(--warn); }
+    .empty { color: var(--muted); font-size: 13px; padding: 12px 0; }
+    .toast { position: fixed; bottom: 18px; right: 18px; background: var(--green); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .toast.show { opacity: 1; }
+    .note { color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 14px; }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .cat-list { max-height: 280px; }
+      .top { align-items: start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">✦</div>
+        <div>
+          <strong>WorkWithAI</strong>
+          <small>Isi template, lalu salin prompt jadi jadi</small>
+        </div>
+      </div>
+    </header>
+    <section class="welcome">
+      <div class="eyebrow">Playground prompt</div>
+      <h1>Siapkan prompt tanpa menyalin kurung siku.</h1>
+      <p>Pilih template, isi kolom yang diminta, lalu salin hasilnya. Riwayat tersimpan di browser ini. Prompt tetap perlu dicek manusia sebelum dipakai untuk keputusan penting.</p>
+    </section>
+    <div class="layout">
+      <aside class="panel">
+        <h2>Template</h2>
+        <p class="sub">Cari atau pilih dari daftar.</p>
+        <input class="search" id="search" type="search" placeholder="Cari template atau industri…" aria-label="Cari template">
+        <div class="cat-list" id="catalog"></div>
+      </aside>
+      <section class="panel">
+        <div class="editor-head">
+          <div>
+            <h2 id="tplTitle">Pilih template</h2>
+            <p class="sub" id="tplCat">Mulai dari daftar di kiri.</p>
+          </div>
+          <div class="actions">
+            <button class="button light" id="clearBtn" type="button">Kosongkan</button>
+            <button class="button" id="copyBtn" type="button">Salin prompt</button>
+          </div>
+        </div>
+        <form class="fields" id="fields"></form>
+        <div class="meta">
+          <span id="fillStat">Belum ada template</span>
+          <span id="charStat"></span>
+        </div>
+        <pre class="preview" id="preview" aria-live="polite"></pre>
+        <p class="note">Data tersimpan di browser ini. Gunakan perangkat dan browser yang sama untuk melihat riwayat.</p>
+        <section class="history" aria-labelledby="histHeading">
+          <div class="editor-head">
+            <div>
+              <h2 id="histHeading">Riwayat</h2>
+              <p class="sub">Klik judul untuk memuat ulang.</p>
+            </div>
+            <button class="button ghost" id="clearHist" type="button">Hapus riwayat</button>
+          </div>
+          <div class="history-list" id="history"></div>
+        </section>
+      </section>
+    </div>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script>
+    (() => {
+      const KEY = "playground-prompt-ai-v1";
+      const LONG = /materi|teks|diff|kode|catatan|pesan|data|bahan|klaim|kebutuhan|gejala|kebijakan|fakta|dokumen/;
+      const TEMPLATES = [
+        { id: "umum", cat: "Template umum", title: "Template umum", body: "Anda berperan sebagai [peran yang relevan]. Bantu saya mencapai hasil berikut: [tujuan].\n\nKonteks:\n- Situasi: [latar belakang]\n- Audiens/pengguna: [siapa yang akan menggunakan hasil]\n- Batasan: [waktu, biaya, alat, kebijakan, atau batas lain]\n- Bahan/sumber: [tempelkan materi atau tautan yang boleh digunakan]\n\nSebelum menjawab, identifikasi informasi penting yang belum tersedia. Jika kekurangannya mengubah hasil secara material, ajukan maksimal [jumlah] pertanyaan singkat. Jika tidak, lanjutkan dengan asumsi yang dinyatakan jelas.\n\nBerikan hasil dalam format [format]. Pisahkan fakta, asumsi, dan rekomendasi. Jangan mengarang data, kutipan, atau sumber. Tandai informasi yang belum dapat dipastikan dan jelaskan cara memverifikasinya." },
+        { id: "riset-pasar", cat: "Bisnis dan strategi", title: "Riset pasar awal", body: "Analisis peluang awal untuk [produk/layanan] bagi [segmen pelanggan] di [wilayah]. Susun: masalah pelanggan, solusi yang sudah digunakan, alternatif/kompetitor, faktor pembelian, hambatan adopsi, dan asumsi yang perlu diuji.\n\nGunakan hanya bukti yang saya berikan atau sumber yang dapat diverifikasi. Untuk tiap klaim penting, cantumkan sumber dan tanggalnya. Bedakan fakta dari hipotesis. Akhiri dengan 5 eksperimen murah untuk menguji permintaan; jangan menyimpulkan ada product-market fit tanpa data pelanggan." },
+        { id: "rencana-bisnis", cat: "Bisnis dan strategi", title: "Rencana bisnis satu halaman", body: "Buat rencana bisnis satu halaman untuk [usaha]. Sertakan pelanggan sasaran, masalah, proposisi nilai, cara memperoleh pendapatan, saluran pemasaran, kegiatan dan biaya utama, risiko terbesar, metrik awal, dan eksperimen 30 hari.\n\nTandai angka yang hanya asumsi. Jangan membuat proyeksi keuangan seolah-olah fakta. Nyatakan data yang diperlukan untuk memperbaiki rencana." },
+        { id: "kompetitor", cat: "Bisnis dan strategi", title: "Analisis kompetitor", body: "Bandingkan [produk/usaha saya] dengan [daftar kompetitor] untuk [jenis pelanggan/pasar]. Buat tabel fitur, harga (jika tersedia), segmen, keunggulan, kelemahan, dan bukti pendukung.\n\nJangan menebak harga atau fitur yang tidak diketahui; tulis “belum terverifikasi”. Setelah tabel, berikan 3 peluang diferensiasi yang masuk akal dan risiko tiap peluang." },
+        { id: "kampanye", cat: "Pemasaran dan penjualan", title: "Pesan kampanye", body: "Buat konsep kampanye untuk [produk/layanan] yang ditujukan kepada [audiens] melalui [kanal]. Tujuan kampanye: [tujuan terukur]. Pesan utama: [pesan]. Batasan merek dan klaim: [batasan].\n\nBerikan 3 variasi judul, teks utama, ajakan bertindak, dan ide visual. Sesuaikan gaya dengan [nada]. Hindari klaim medis, finansial, kinerja, atau superlatif yang tidak didukung bukti. Jelaskan hipotesis yang diuji tiap variasi." },
+        { id: "wawancara-pelanggan", cat: "Pemasaran dan penjualan", title: "Wawancara pelanggan", body: "Susun panduan wawancara 20 menit untuk memahami bagaimana [segmen] menangani [masalah]. Tujuannya belajar tentang perilaku nyata, pemicu, solusi saat ini, biaya/konsekuensi, dan proses keputusan.\n\nGunakan pertanyaan terbuka dan netral. Hindari mengarahkan responden untuk memuji ide [ide produk]. Sertakan pembuka, 8–10 pertanyaan inti, pertanyaan pendalaman, dan penutup. Pisahkan pertanyaan riset dari pertanyaan tentang konsep produk." },
+        { id: "tanggapan-prospek", cat: "Pemasaran dan penjualan", title: "Tanggapan prospek", body: "Tulis balasan kepada prospek berdasarkan informasi berikut:\n- Pesan prospek: [pesan]\n- Produk/layanan dan harga yang sudah terkonfirmasi: [detail]\n- Tujuan balasan: [tujuan]\n- Nada: [nada]\n\nJawab pertanyaan prospek secara langsung, jangan menjanjikan hal yang belum dikonfirmasi, dan akhiri dengan satu langkah berikutnya yang jelas. Maksimal [jumlah] kata." },
+        { id: "selisih-anggaran", cat: "Keuangan dan akuntansi", title: "Analisis selisih anggaran", body: "Analisis perbedaan aktual dan anggaran untuk periode [periode] menggunakan tabel/data yang saya berikan. Tunjukkan nilai selisih, persentase, dan kontributor utama bila datanya memungkinkan.\n\nJangan menyimpulkan penyebab hanya dari angka. Pisahkan observasi dari kemungkinan penyebab, tandai data yang kurang, dan buat daftar pertanyaan tindak lanjut untuk pemilik biaya." },
+        { id: "pemeriksaan-transaksi", cat: "Keuangan dan akuntansi", title: "Pemeriksaan transaksi", body: "Tinjau daftar transaksi terlampir untuk menemukan kemungkinan duplikasi, nilai tidak biasa, tanggal janggal, atau keterangan yang tidak lengkap. Kembalikan tabel berisi nomor baris, temuan, alasan, tingkat prioritas, dan pemeriksaan yang disarankan.\n\nIni hanya pemeriksaan awal, bukan keputusan bahwa transaksi salah atau fraud. Jangan mengubah data sumber. Jika mata uang, periode, atau aturan materialitas tidak tersedia, nyatakan keterbatasannya." },
+        { id: "job-desc", cat: "Sumber daya manusia", title: "Deskripsi pekerjaan", body: "Buat deskripsi pekerjaan untuk posisi [jabatan] di [jenis organisasi]. Sertakan tujuan peran, tanggung jawab, kualifikasi wajib dan yang diutamakan, indikator keberhasilan, lokasi/pola kerja, serta proses melamar.\n\nGunakan bahasa inklusif dan persyaratan yang relevan dengan pekerjaan. Jangan menambahkan syarat pendidikan, usia, gender, atau pengalaman yang tidak saya berikan atau tidak dibutuhkan. Tandai bagian yang perlu ditinjau terhadap hukum dan kebijakan setempat." },
+        { id: "rubrik", cat: "Sumber daya manusia", title: "Rubrik wawancara terstruktur", body: "Buat rubrik wawancara terstruktur untuk posisi [jabatan] berdasarkan tanggung jawab [daftar tanggung jawab]. Sertakan 5 kompetensi, pertanyaan berbasis pengalaman, pertanyaan pendalaman, dan skala penilaian 1–4 dengan contoh perilaku yang dapat diamati.\n\nGunakan kriteria yang konsisten untuk semua kandidat. Hindari pertanyaan tentang karakteristik pribadi yang tidak relevan. Jangan menyimpulkan kecocokan dari satu jawaban saja." },
+        { id: "rencana-pelajaran", cat: "Pendidikan dan pelatihan", title: "Rencana pelajaran", body: "Buat rencana pembelajaran [durasi] tentang [topik] untuk peserta dengan tingkat [tingkat]. Tujuan belajar harus dapat diamati dan diukur.\n\nSusun alur pembuka, penjelasan, contoh, latihan aktif, pemeriksaan pemahaman, dan penutup. Sertakan kebutuhan alat dan adaptasi untuk peserta yang memerlukan dukungan berbeda. Jangan mengasumsikan pengetahuan awal yang belum disebutkan." },
+        { id: "tutor", cat: "Pendidikan dan pelatihan", title: "Tutor Socratic", body: "Bertindak sebagai tutor untuk membantu saya memahami [konsep]. Jangan langsung memberikan jawaban akhir. Ajukan satu pertanyaan pada satu waktu, dengarkan jawaban saya, lalu berikan petunjuk sesuai kebutuhan.\n\nJika jawaban saya keliru, tunjukkan bagian penalaran yang perlu diperiksa dan beri contoh kecil. Setelah selesai, rangkum konsep, kesalahan yang perlu diingat, dan satu soal latihan baru." },
+        { id: "spek-fitur", cat: "Teknologi dan pengembangan perangkat lunak", title: "Spesifikasi fitur", body: "Ubah kebutuhan berikut menjadi spesifikasi fitur: [kebutuhan]. Sertakan masalah pengguna, tujuan, ruang lingkup, alur utama, keadaan kosong/gagal, aturan bisnis, kebutuhan aksesibilitas, dan kriteria penerimaan yang dapat diuji.\n\nPisahkan hal yang sudah dipastikan dari asumsi dan pertanyaan terbuka. Jangan memilih teknologi atau menambahkan fitur di luar kebutuhan tanpa menandainya sebagai usulan." },
+        { id: "tinjauan-kode", cat: "Teknologi dan pengembangan perangkat lunak", title: "Tinjauan kode", body: "Tinjau perubahan kode berikut untuk menemukan bug, celah keamanan, masalah kinerja, dan kasus tepi yang relevan: [diff atau kode]. Konteks dan perilaku yang diharapkan: [konteks].\n\nLaporkan hanya temuan yang dapat ditunjuk ke lokasi kode. Untuk tiap temuan, berikan tingkat keparahan, dampak, kondisi pemicu, dan perbaikan yang disarankan. Jika tidak ada temuan, sebutkan cakupan yang ditinjau dan hal yang tidak dapat dipastikan." },
+        { id: "diagnosis", cat: "Teknologi dan pengembangan perangkat lunak", title: "Diagnosis masalah", body: "Bantu diagnosis masalah ini: [gejala dan pesan error]. Lingkungan: [versi, sistem, konfigurasi]. Langkah yang sudah dicoba: [langkah]. Hasil yang diharapkan: [hasil].\n\nMulai dari pemeriksaan yang paling aman dan mudah dibatalkan. Berikan hipotesis berurutan dengan bukti yang mendukung dan cara menguji masing-masing. Jangan menyarankan penghapusan data atau perubahan produksi tanpa menjelaskan dampaknya dan langkah pemulihan." },
+        { id: "dukungan", cat: "Layanan pelanggan dan operasi", title: "Jawaban dukungan", body: "Tulis jawaban dukungan untuk kasus berikut: [pesan pelanggan]. Kebijakan yang berlaku: [kebijakan]. Informasi yang sudah terverifikasi: [fakta].\n\nTunjukkan empati secara singkat, jawab berdasarkan kebijakan, dan berikan langkah berikutnya. Jangan mengarang status pesanan, kompensasi, atau janji waktu. Jika informasi penting belum ada, minta detail minimum yang diperlukan." },
+        { id: "sop", cat: "Layanan pelanggan dan operasi", title: "SOP proses", body: "Ubah catatan proses ini menjadi SOP untuk [proses/tim]: [catatan]. Sertakan tujuan, cakupan, penanggung jawab, prasyarat, langkah bernomor, titik pemeriksaan, jalur eskalasi, dan catatan keselamatan/kepatuhan yang relevan.\n\nJangan mengisi prosedur yang tidak didukung catatan. Tandai bagian yang perlu dikonfirmasi oleh pemilik proses sebelum SOP digunakan." },
+        { id: "ringkasan-pasien", cat: "Kesehatan dan layanan sosial", title: "Ringkasan informasi untuk pasien/klien", body: "Ubah materi terverifikasi berikut menjadi ringkasan bahasa sederhana untuk [audiens]: [materi]. Pertahankan makna, batasan, dan instruksi penting.\n\nJangan mendiagnosis, menambahkan saran terapi, atau mengganti arahan profesional. Jelaskan istilah teknis dan tandai bagian yang perlu dikonfirmasi tenaga profesional. Jika ada tanda bahaya yang tertulis di sumber, tonjolkan tanpa mengubah isinya." },
+        { id: "ringkasan-hukum", cat: "Hukum dan kepatuhan", title: "Ringkasan dokumen", body: "Ringkas dokumen berikut untuk membantu pembaca memahami isinya: [teks]. Susun kewajiban, hak, tanggal/tenggat, pengecualian, konsekuensi yang disebut, serta istilah yang belum jelas.\n\nCantumkan bagian atau kutipan pendek yang mendukung tiap poin. Jangan menyimpulkan hukum yang berlaku di luar dokumen atau memberikan kepastian hukum. Tandai pertanyaan yang perlu ditinjau penasihat hukum di yurisdiksi [wilayah]." },
+        { id: "brief-desain", cat: "Desain dan riset pengguna", title: "Brief desain", body: "Buat brief desain untuk [produk/halaman/aset] bagi [pengguna]. Tujuan pengguna: [tujuan]. Konteks penggunaan: [konteks]. Batasan merek/teknis: [batasan].\n\nRangkum kebutuhan, hierarki informasi, alur, konten, keadaan penting, aksesibilitas, dan kriteria keberhasilan. Pisahkan kebutuhan wajib dari ide opsional. Jangan mengasumsikan hasil riset pengguna yang belum tersedia." },
+        { id: "uji-kegunaan", cat: "Desain dan riset pengguna", title: "Rencana uji kegunaan", body: "Buat rencana uji kegunaan untuk mengevaluasi [prototipe/fitur] kepada [jenis pengguna]. Tujuan riset: [tujuan]. Durasi: [durasi].\n\nSertakan tugas realistis tanpa memberi petunjuk berlebihan, pertanyaan tindak lanjut netral, metrik observasi, cara mencatat masalah, dan batasan sampel. Jangan menganggap hasil dari beberapa peserta mewakili seluruh populasi." },
+        { id: "operasi", cat: "Pertanian, manufaktur, dan lingkungan", title: "Analisis masalah operasi", body: "Susun analisis awal untuk masalah [masalah operasi] pada [proses/lokasi], menggunakan data berikut: [data]. Tunjukkan pola yang terlihat, kemungkinan penyebab, risiko terhadap mutu/keselamatan/lingkungan, dan data tambahan yang dibutuhkan.\n\nBedakan korelasi dari sebab-akibat. Jangan merekomendasikan perubahan parameter keselamatan atau proses kritis tanpa validasi ahli dan prosedur yang berlaku." },
+        { id: "verifikasi-klaim", cat: "Jurnalisme dan komunikasi publik", title: "Verifikasi klaim", body: "Periksa klaim berikut menggunakan bahan sumber yang saya lampirkan: [klaim]. Buat tabel klaim, bukti pendukung, bukti yang bertentangan, konteks yang hilang, dan status (didukung/tidak didukung/belum cukup bukti).\n\nGunakan kutipan singkat dengan lokasi sumber. Jangan menyamakan ketiadaan bukti dengan bukti bahwa klaim salah. Nyatakan apa yang belum dapat diverifikasi." },
+        { id: "ringkasan-umum", cat: "Jurnalisme dan komunikasi publik", title: "Ringkasan untuk audiens umum", body: "Ringkas bahan berikut untuk [audiens] dalam [jumlah] kata: [bahan]. Pertahankan fakta utama, angka, tanggal, dan konteks penting.\n\nJangan menambah fakta dari luar bahan. Jika bahan saling bertentangan, jelaskan pertentangannya. Sertakan daftar istilah yang perlu dijelaskan bila ada." }
+      ];
+
+      const placeholders = (text) => {
+        const seen = [];
+        for (const match of text.matchAll(/\[([^\]]+)\]/g)) {
+          if (!seen.includes(match[1])) seen.push(match[1]);
+        }
+        return seen;
+      };
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const load = () => {
+        try {
+          const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+          return { history: Array.isArray(saved.history) ? saved.history : [], lastId: saved.lastId || null };
+        } catch {
+          return { history: [], lastId: null };
+        }
+      };
+      const saveStore = () => {
+        try { localStorage.setItem(KEY, JSON.stringify(store)); }
+        catch { toast("Penyimpanan browser tidak tersedia."); }
+      };
+
+      let store = load();
+      let current = TEMPLATES.find((t) => t.id === store.lastId) || TEMPLATES[0];
+      let values = {};
+
+      const catalog = document.getElementById("catalog");
+      const fields = document.getElementById("fields");
+      const preview = document.getElementById("preview");
+      const historyEl = document.getElementById("history");
+
+      function toast(msg) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 1800);
+      }
+
+      function filledText() {
+        return current.body.replace(/\[([^\]]+)\]/g, (all, key) => {
+          const v = (values[key] || "").trim();
+          return v || all;
+        });
+      }
+
+      function remaining() {
+        return placeholders(current.body).filter((key) => !(values[key] || "").trim()).length;
+      }
+
+      function renderCatalog() {
+        const q = document.getElementById("search").value.trim().toLowerCase();
+        const groups = {};
+        TEMPLATES.forEach((t) => {
+          const hay = `${t.cat} ${t.title}`.toLowerCase();
+          if (q && !hay.includes(q)) return;
+          (groups[t.cat] ||= []).push(t);
+        });
+        const cats = Object.keys(groups);
+        catalog.innerHTML = cats.length
+          ? cats.map((cat) => `<div class="cat"><h3>${esc(cat)}</h3>${groups[cat].map((t) =>
+              `<button type="button" class="tpl ${t.id === current.id ? "active" : ""}" data-id="${t.id}">${esc(t.title)}</button>`
+            ).join("")}</div>`).join("")
+          : `<div class="empty">Tidak ada template yang cocok.</div>`;
+      }
+
+      function renderFields() {
+        document.getElementById("tplTitle").textContent = current.title;
+        document.getElementById("tplCat").textContent = current.cat;
+        const keys = placeholders(current.body);
+        fields.innerHTML = keys.map((key) => {
+          const id = "f-" + key.replace(/[^a-z0-9]+/gi, "-");
+          const long = LONG.test(key);
+          const val = esc(values[key] || "");
+          return `<div class="field"><label for="${id}">${esc(key)}</label>${
+            long
+              ? `<textarea id="${id}" data-key="${esc(key)}" placeholder="Isi ${esc(key)}">${val}</textarea>`
+              : `<input id="${id}" data-key="${esc(key)}" value="${val}" placeholder="Isi ${esc(key)}">`
+          }</div>`;
+        }).join("") || `<div class="empty">Template ini tidak punya kolom isian.</div>`;
+      }
+
+      function renderPreview() {
+        const html = current.body.replace(/\[([^\]]+)\]/g, (all, key) => {
+          const v = (values[key] || "").trim();
+          return v ? `<span class="filled">${esc(v)}</span>` : `<span class="ph">${esc(all)}</span>`;
+        });
+        preview.innerHTML = html;
+        const left = remaining();
+        const total = placeholders(current.body).length;
+        document.getElementById("fillStat").textContent = left
+          ? `${total - left} dari ${total} kolom terisi`
+          : total ? "Semua kolom terisi" : "Siap disalin";
+        document.getElementById("charStat").textContent = `${filledText().length} karakter`;
+      }
+
+      function renderHistory() {
+        historyEl.innerHTML = store.history.length
+          ? store.history.map((h) => `<article class="hist">
+              <button type="button" data-load="${h.id}" style="text-align:left;color:inherit;font-weight:650">
+                ${esc(h.title)}<div class="sub">${esc(new Date(h.savedAt).toLocaleString("id-ID"))}</div>
+              </button>
+              <button type="button" data-del="${h.id}" aria-label="Hapus ${esc(h.title)}">Hapus</button>
+            </article>`).join("")
+          : `<div class="empty">Belum ada riwayat. Salin sebuah prompt untuk menyimpannya.</div>`;
+      }
+
+      function selectTemplate(id, nextValues) {
+        const found = TEMPLATES.find((t) => t.id === id);
+        if (!found) return;
+        current = found;
+        values = nextValues ? { ...nextValues } : {};
+        store.lastId = id;
+        saveStore();
+        renderCatalog();
+        renderFields();
+        renderPreview();
+      }
+
+      function remember() {
+        const item = {
+          id: Date.now(),
+          templateId: current.id,
+          title: current.title,
+          values: { ...values },
+          savedAt: Date.now()
+        };
+        store.history = [item, ...store.history.filter((h) =>
+          !(h.templateId === item.templateId && JSON.stringify(h.values) === JSON.stringify(item.values))
+        )].slice(0, 20);
+        saveStore();
+        renderHistory();
+      }
+
+      async function copyPrompt() {
+        const text = filledText();
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const area = document.createElement("textarea");
+          area.value = text;
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+        }
+        remember();
+        toast(remaining() ? "Disalin. Beberapa kolom masih kosong." : "Prompt disalin.");
+      }
+
+      document.getElementById("search").addEventListener("input", renderCatalog);
+      catalog.addEventListener("click", (e) => {
+        const id = e.target.closest("[data-id]")?.dataset.id;
+        if (id) selectTemplate(id);
+      });
+      fields.addEventListener("input", (e) => {
+        const key = e.target.dataset.key;
+        if (!key) return;
+        values[key] = e.target.value;
+        renderPreview();
+      });
+      document.getElementById("copyBtn").addEventListener("click", copyPrompt);
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        values = {};
+        renderFields();
+        renderPreview();
+      });
+      document.getElementById("clearHist").addEventListener("click", () => {
+        store.history = [];
+        saveStore();
+        renderHistory();
+      });
+      historyEl.addEventListener("click", (e) => {
+        const loadId = Number(e.target.closest("[data-load]")?.dataset.load);
+        const delId = Number(e.target.closest("[data-del]")?.dataset.del);
+        if (loadId) {
+          const item = store.history.find((h) => h.id === loadId);
+          if (item) selectTemplate(item.templateId, item.values);
+        }
+        if (delId) {
+          store.history = store.history.filter((h) => h.id !== delId);
+          saveStore();
+          renderHistory();
+        }
+      });
+
+      renderCatalog();
+      renderFields();
+      renderPreview();
+      renderHistory();
+    })();
+  </script>
+</body>
+</html>
